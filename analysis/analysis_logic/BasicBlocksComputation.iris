@@ -1,0 +1,46 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// -- Basic block computation
+
+basicBlock(?m, ?b, ?e) :-
+    basicBlockStart(?m, ?b),
+    basicBlockEnd(?m, ?e),
+    ?b = ?e.
+basicBlock(?m, ?b, ?e) :-
+    basicBlockStart(?m, ?b),
+    findBasicBlockEnd(?m, ?b, ?e).
+
+basicBlockStart(?m, ?i) :-
+    instruction(?m, ?i, ?s),
+    ?i = 1.
+basicBlockStart(?m, ?i) :-
+    label(?m, ?i).
+basicBlockStart(?m, ?i) :-
+    cJumpInstruction(?m, ?j),
+    next(?m, ?j, ?i),
+    ?j+1 = ?k,
+    ?i = ?k.
+basicBlockStart(?m, ?i) :-
+    jumpInstruction(?m, ?j),
+    !lastInstruction(?m, ?j),
+    ?j+1 = ?i.
+
+basicBlockEnd(?m, ?i) :-
+    lastInstruction(?m, ?i).
+basicBlockEnd(?m, ?i) :-
+    cJumpInstruction(?m, ?i).
+basicBlockEnd(?m, ?i) :-
+    jumpInstruction(?m, ?i).
+basicBlockEnd(?m, ?i) :-
+    label(?m, ?j),
+    next(?m, ?i, ?j),
+    ?i != 1.
+
+findBasicBlockEnd(?m, ?i, ?e) :-
+    basicBlockEnd(?m, ?i),
+    ?i = ?e.
+findBasicBlockEnd(?m, ?i, ?e) :-
+    !basicBlockEnd(?m, ?i),
+    next(?m, ?i, ?j),
+    findBasicBlockEnd(?m, ?j, ?e).
+
+////////////////////////////////////////////////////////////////////////////////////////////////////

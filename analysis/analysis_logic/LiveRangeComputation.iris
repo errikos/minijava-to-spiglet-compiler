@@ -1,0 +1,13 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// -- Live range computation
+
+liveIn(?m, ?i, ?v) :-
+    liveOut(?m, ?i, ?v),
+    !varDef(?m, ?i, ?v).
+// Dead ones?
+liveIn(?m, ?i, ?v) :-
+    varUse(?m, ?i, ?v).
+
+liveOut(?m, ?i, ?v) :-
+    next(?m, ?i, ?j),
+    liveIn(?m, ?j, ?v).

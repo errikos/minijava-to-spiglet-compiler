@@ -1,0 +1,50 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// -- Copy propagation
+
+/**
+ * In a method ?m and instruction ?i, a variable ?x is guaranteed to be a copy of ?y
+ * if ?i moves ?y to ?x, or
+ * if ?i moves another variable ?other to ?x and ?other is guaranteed to be a copy of ?y, or
+ * if ?i uses ?x and we can guarantee that ?x is a copy of ?y.
+ */
+
+copyOf(?m, ?i, ?x, ?y) :-
+    varMove(?m, ?i, ?x, ?y).
+copyOf(?m, ?i, ?x, ?y) :-
+    varMove(?m, ?i, ?x, ?other),
+    findCopy(?m, ?i, ?other, ?y).
+copyOf(?m, ?i, ?x, ?y) :-
+    varUse(?m, ?i, ?x),
+    findCopy(?m, ?i, ?x, ?y).
+
+// Case 1
+findCopy(?m, ?i, ?x, ?y) :-
+    varMove(?m, ?i, ?x, ?y).
+
+// Case 2
+findCopy(?m, ?i, ?x, ?y) :-
+    !hasTwoPredecessors(?m, ?i),
+    !varDef(?m, ?i, ?x),
+    !varDef(?m, ?i, ?y),
+    next(?m, ?j, ?i),
+    findCopy(?m, ?j, ?x, ?y).
+
+// Case 3
+findCopy(?m, ?i, ?x, ?y) :-
+    !hasTwoPredecessors(?m, ?i),
+    varMove(?m, ?i, ?x, ?other),
+    next(?m, ?j, ?i),
+    findCopy(?m, ?j, ?other, ?y).
+
+// Case 4
+findCopy(?m, ?i, ?x, ?y) :-
+    hasTwoPredecessors(?m, ?i),
+    !varDef(?m, ?i, ?x),
+    !varDef(?m, ?i, ?y),
+    next(?m, ?j, ?i),
+    next(?m, ?k, ?i),
+    ?j != ?k,
+    findCopy(?m, ?j, ?x, ?y),
+    findCopy(?m, ?k, ?x, ?y).
+
+////////////////////////////////////////////////////////////////////////////////////////////////////

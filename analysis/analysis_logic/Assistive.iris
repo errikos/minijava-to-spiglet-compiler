@@ -1,0 +1,45 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// These are assistive rules that are shared among the main rules.
+
+// -- Conditional jump
+
+cJumpInstruction(?m, ?i) :-
+    next(?m, ?i, ?j),
+    next(?m, ?i, ?k),
+    ?i+1 = ?k,
+    ?j != ?k.
+
+// -- Jump
+
+jumpInstruction(?m, ?i) :-
+    next(?m, ?i, ?j),
+    ?i+1 = ?k,
+    ?j != ?k,
+    !next(?m, ?i, ?k).
+
+// -- Labels
+
+label(?m, ?i) :-
+    jumpInstruction(?m, ?j),
+    next(?m, ?j, ?i).
+
+label(?m, ?i) :-
+    cJumpInstruction(?m, ?j),
+    next(?m, ?j, ?i),
+    ?j+1 = ?k,
+    ?i != ?k.
+
+// -- Last instruction
+
+lastInstruction(?m, ?i) :-
+    next(?m, ?j, ?i),
+    !next(?m, ?i, ?k).
+
+// -- Has two predecessors
+
+hasTwoPredecessors(?m, ?i) :-
+    next(?m, ?j, ?i),
+    next(?m, ?k, ?i),
+    ?j != ?k.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,0 +1,48 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// -- Constant propagation
+
+/**
+ * In a method ?m and instruction ?i, a variable ?var is guaranteed to have a constant value ?val
+ * if ?i moves a constant to ?var, or
+ * if ?i moves a variable ?rs to ?var and we can guarantee that ?rs has a constant value, or
+ * if ?i uses ?var and we can guarantee that ?var has a constant value ?val.
+ */
+
+constValue(?m, ?i, ?var, ?val) :-
+    constMove(?m, ?i, ?var, ?val).
+constValue(?m, ?i, ?var, ?val) :-
+    varMove(?m, ?i, ?var, ?rs),
+    findConst(?m, ?i, ?rs, ?val).
+constValue(?m, ?i, ?var, ?val) :-
+    varUse(?m, ?i, ?var),
+    findConst(?m, ?i, ?var, ?val).
+
+
+// Case 1
+findConst(?m, ?i, ?var, ?val) :-
+    constMove(?m, ?i, ?var, ?val).
+
+// Case 2
+findConst(?m, ?i, ?var, ?val) :-
+    !hasTwoPredecessors(?m, ?i),
+    !varDef(?m, ?i, ?var),
+    next(?m, ?j, ?i),
+    findConst(?m, ?j, ?var, ?val).
+
+// Case 3
+findConst(?m, ?i, ?var, ?val) :-
+    hasTwoPredecessors(?m, ?i),
+    next(?m, ?j, ?i),
+    next(?m, ?k, ?i),
+    ?j != ?k,
+    findConst(?m, ?j, ?var, ?val),
+    findConst(?m, ?k, ?var, ?val).
+
+// Case 4
+findConst(?m, ?i, ?var, ?val) :-
+    !hasTwoPredecessors(?m, ?i),
+    copyOf(?m, ?i, ?var, ?other),  // Delegate to copy propagation.
+    next(?m, ?j, ?i),
+    findConst(?m, ?j, ?other, ?val).
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
